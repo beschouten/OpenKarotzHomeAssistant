@@ -1,0 +1,439 @@
+"""OpenKarotz API Client."""
+
+import asyncio
+import json
+import logging
+import time
+from typing import Any, Dict, Optional
+from urllib.parse import urljoin
+
+import aiohttp
+import websocket
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
+
+from .const import (
+    DEFAULT_PORT,
+    DEFAULT_TIMEOUT,
+    DEFAULT_RECONNECT_ATTEMPTS,
+    DEFAULT_RECONNECT_DELAY,
+)
+
+_LOGGER = logging.getLogger(__name__)
+
+
+class OpenKarotzAPIError(HomeAssistantError):
+    """Base exception for OpenKarotz API errors."""
+
+    pass
+
+
+class OpenKarotzConnectionError(OpenKarotzAPIError):
+    """Connection error occurred."""
+
+    pass
+
+
+class OpenKarotzAuthenticationError(OpenKarotzAPIError):
+    """Authentication failed."""
+
+    pass
+
+
+class OpenKarotzAPI:
+    """OpenKarotz API client for device communication."""
+
+    def __init__(
+        self,
+        host: str,
+        port: int = DEFAULT_PORT,
+        timeout: int = DEFAULT_TIMEOUT,
+    ):
+        """Initialize OpenKarotz API client."""
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        self.base_url = f"http://{host}:{port}"
+        self.session: Optional[aiohttp.ClientSession] = None
+        self.websocket_client: Optional[websocket.WebSocketApp] = None
+        self._websocket_callback: Optional[callable] = None
+        self._is_connected = False
+
+    async def async_connect(self) -> bool:
+        """Establish connection to OpenKarotz device."""
+        try:
+            # Initialize HTTP session
+            self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=self.timeout))
+
+            # Test connection
+            try:
+                await self._async_request("GET", "/api")
+            except Exception as e:
+                _LOGGER.error(f"Failed to connect to OpenKarotz: {e}")
+                await self.async_disconnect()
+                return False
+
+            _LOGGER.info(f"Successfully connected to OpenKarotz at {self.base_url}")
+            self._is_connected = True
+            return True
+
+        except Exception as e:
+            _LOGGER.error(f"Connection error: {e}")
+            return False
+
+    async def async_disconnect(self) -> None:
+        """Disconnect from OpenKarotz device."""
+        if self.session:
+            await self.session.close()
+            self.session = None
+
+        if self.websocket_client:
+            self.websocket_client.close()
+            self.websocket_client = None
+
+        self._is_connected = False
+        _LOGGER.info("Disconnected from OpenKarotz")
+
+    async def _async_request(
+        self,
+        method: str,
+        endpoint: str,
+        data: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Make HTTP request to OpenKarotz API.
+
+        Args:
+            method: HTTP method (GET, POST)
+            endpoint: API endpoint
+            data: Request body data
+            params: URL parameters
+
+        Returns:
+            API response as dictionary
+
+        Raises:
+            OpenKarotzAPIError: On API errors
+            OpenKarotzConnectionError: On connection errors
+        """
+        if not self._is_connected or not self.session:
+            raise OpenKarotzConnectionError("Not connected to OpenKarotz")
+
+        url = urljoin(self.base_url, endpoint)
+
+        try:
+            async with self.session.request(
+                method=method,
+                url=url,
+                json=data,
+                params=params,
+            ) as response:
+                response.raise_for_status()
+                return await response.json()
+
+        except aiohttp.ClientError as e:
+            _LOGGER.error(f"API request error: {e}")
+            raise OpenKarotzConnectionError(f"API request failed: {e}")
+
+        except json.JSONDecodeError as e:
+            _LOGGER.error(f"Invalid JSON response: {e}")
+            raise OpenKarotzAPIError(f"Invalid response format: {e}")
+
+        except aiohttp.ClientResponseError as e:
+            if e.status == 401:
+                raise OpenKarotzAuthenticationError("Authentication failed")
+            raise OpenKarotzAPIError(f"API error: {e.status} - {e.message}")
+
+    async def get_info(self) -> Dict[str, Any]:
+        """Get device information.
+
+        Returns:
+            Dictionary with device information
+        """
+        return await self._async_request("GET", "/api")
+
+    async def get_state(self) -> Dict[str, Any]:
+        """Get device state.
+
+        Returns:
+            Dictionary with device state
+        """
+        return await self._async_request("GET", "/state")
+
+    async def get_leds(self) -> Dict[str, Any]:
+        """Get LED information and state.
+
+        Returns:
+            Dictionary with LED information
+        """
+        return await self._async_request("GET", "/leds")
+
+    async def set_led(
+        self,
+        color: Optional[str] = None,
+        brightness: Optional[int] = None,
+        color_temperature: Optional[int] = None,
+        preset: Optional[str] = None,
+        rgb_value: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Set LED configuration.
+
+        Args:
+            color: Color name (e.g., "red", "blue")
+            brightness: Brightness level (0-100)
+            color_temperature: Color temperature in Kelvin
+            preset: Preset color scheme name
+            rgb_value: RGB color value (e.g., "FF0000")
+
+        Returns:
+            API response
+        """
+        data = {}
+        if color is not None:
+            data["color"] = color
+        if brightness is not None:
+            data["brightness"] = brightness
+        if color_temperature is not None:
+            data["color_temperature"] = color_temperature
+        if preset is not None:
+            data["preset"] = preset
+        if rgb_value is not None:
+            data["rgb_value"] = rgb_value
+
+        return await self._async_request("POST", "/leds", data)
+
+    async def get_ears(self) -> Dict[str, Any]:
+        """Get audio player information and state.
+
+        Returns:
+            Dictionary with audio player information
+        """
+        return await self._async_request("GET", "/ears")
+
+    async def set_volume(self, volume: int) -> Dict[str, Any]:
+        """Set audio player volume.
+
+        Args:
+            volume: Volume level (0-100)
+
+        Returns:
+            API response
+        """
+        return await self._async_request("POST", "/ears", {"volume": volume})
+
+    async def play_audio(
+        self,
+        source: str,
+        category: Optional[str] = None,
+        volume: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Play audio from specified source.
+
+        Args:
+            source: Audio source identifier
+            category: Audio category (e.g., "alarm", "notification")
+            volume: Audio volume (0-100)
+
+        Returns:
+            API response
+        """
+        data = {"source": source}
+        if category is not None:
+            data["category"] = category
+        if volume is not None:
+            data["volume"] = volume
+
+        return await self._async_request("POST", "/ears", data)
+
+    async def stop_audio(self, source: Optional[str] = None) -> Dict[str, Any]:
+        """Stop playing audio.
+
+        Args:
+            source: Audio source to stop (optional)
+
+        Returns:
+            API response
+        """
+        data = {}
+        if source is not None:
+            data["source"] = source
+
+        return await self._async_request("POST", "/ears", data)
+
+    async def get_rfid(self) -> Dict[str, Any]:
+        """Get RFID information and state.
+
+        Returns:
+            Dictionary with RFID information
+        """
+        return await self._async_request("GET", "/rfid")
+
+    async def get_tts(self) -> Dict[str, Any]:
+        """Get TTS information and state.
+
+        Returns:
+            Dictionary with TTS information
+        """
+        return await self._async_request("GET", "/tts")
+
+    async def play_tts(
+        self,
+        text: str,
+        voice: Optional[str] = None,
+        category: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Play text-to-speech.
+
+        Args:
+            text: Text to speak
+            voice: Voice identifier
+            category: TTS category (e.g., "notification")
+
+        Returns:
+            API response
+        """
+        data = {"text": text}
+        if voice is not None:
+            data["voice"] = voice
+        if category is not None:
+            data["category"] = category
+
+        return await self._async_request("POST", "/tts", data)
+
+    async def get_pictures(self) -> Dict[str, Any]:
+        """Get picture information.
+
+        Returns:
+            Dictionary with picture information
+        """
+        return await self._async_request("GET", "/pictures")
+
+    async def display_picture(
+        self,
+        picture: str,
+        duration: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Display a picture.
+
+        Args:
+            picture: Picture identifier
+            duration: Display duration in seconds
+
+        Returns:
+            API response
+        """
+        data = {"picture": picture}
+        if duration is not None:
+            data["duration"] = duration
+
+        return await self._async_request("POST", "/pictures", data)
+
+    async def get_sounds(self) -> Dict[str, Any]:
+        """Get sound information.
+
+        Returns:
+            Dictionary with sound information
+        """
+        return await self._async_request("GET", "/sounds")
+
+    async def play_sound(
+        self,
+        sound: str,
+        volume: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Play a sound.
+
+        Args:
+            sound: Sound identifier
+            volume: Volume level (0-100)
+
+        Returns:
+            API response
+        """
+        data = {"sound": sound}
+        if volume is not None:
+            data["volume"] = volume
+
+        return await self._async_request("POST", "/sounds", data)
+
+    async def get_apps(self) -> Dict[str, Any]:
+        """Get installed applications information.
+
+        Returns:
+            Dictionary with application information
+        """
+        return await self._async_request("GET", "/apps")
+
+    def set_websocket_callback(self, callback: callable) -> None:
+        """Set callback for WebSocket events.
+
+        Args:
+            callback: Function to call on WebSocket events
+        """
+        self._websocket_callback = callback
+
+    async def connect_websocket(self, callback: callable) -> None:
+        """Connect to WebSocket for real-time updates.
+
+        Args:
+            callback: Function to call on WebSocket events
+        """
+        self._websocket_callback = callback
+
+        ws_url = f"ws://{self.host}:{self.port}/ws"
+
+        def on_message(ws, message):
+            """Handle incoming WebSocket messages."""
+            try:
+                data = json.loads(message)
+                if self._websocket_callback:
+                    self._websocket_callback(data)
+            except json.JSONDecodeError as e:
+                _LOGGER.error(f"Invalid WebSocket message: {e}")
+
+        def on_error(ws, error):
+            """Handle WebSocket errors."""
+            _LOGGER.error(f"WebSocket error: {error}")
+
+        def on_close(ws, close_status_code, close_msg):
+            """Handle WebSocket close."""
+            _LOGGER.info(f"WebSocket closed: {close_status_code} - {close_msg}")
+            self._is_connected = False
+            # Attempt reconnection
+            asyncio.create_task(self._reconnect_websocket())
+
+        def on_open(ws):
+            """Handle WebSocket open."""
+            _LOGGER.info("WebSocket connected")
+            self._is_connected = True
+
+        self.websocket_client = websocket.WebSocketApp(
+            ws_url,
+            on_open=on_open,
+            on_message=on_message,
+            on_error=on_error,
+            on_close=on_close,
+        )
+
+        # Run WebSocket in separate thread
+        import threading
+
+        def run_websocket():
+            self.websocket_client.run_forever()
+
+        websocket_thread = threading.Thread(target=run_websocket, daemon=True)
+        websocket_thread.start()
+
+    async def _reconnect_websocket(self) -> None:
+        """Attempt to reconnect WebSocket."""
+        for attempt in range(DEFAULT_RECONNECT_ATTEMPTS):
+            _LOGGER.info(f"Reconnecting WebSocket (attempt {attempt + 1}/{DEFAULT_RECONNECT_ATTEMPTS})")
+            await asyncio.sleep(DEFAULT_RECONNECT_DELAY)
+            if self._is_connected:
+                break
+            if self._websocket_callback:
+                await self.connect_websocket(self._websocket_callback)
+
+    async def close(self) -> None:
+        """Close all connections."""
+        await self.async_disconnect()

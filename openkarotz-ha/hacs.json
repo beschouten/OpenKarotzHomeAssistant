@@ -1,0 +1,23 @@
+"""HACS repository metadata."""
+
+{
+  "name": "OpenKarotz Home Assistant Integration",
+  "filename": "openkarotz-ha",
+  "author": "beschouten",
+  "description": "A comprehensive Home Assistant integration for OpenKarotz devices, enabling seamless control and monitoring through the Home Assistant Community Store (HACS).",
+  "version": "1.0.0",
+  "documentation": "https://github.com/beschouten/OpenKarotzHomeAssistant",
+  "iot_class": "local_polling",
+  "codeowners": ["@beschouten"],
+  "config_flow": true,
+  "integration_type": "device",
+  "requirements": ["requests>=2.31.0", "websocket-client>=1.6.0", "aiohttp>=3.9.0", "voluptuous>=0.2.1", "pydantic>=2.0.0"],
+  "after_dependencies": [],
+  "iot_devices": ["sensor", "light", "media_player", "binary_sensor", "switch", "text_sensor", "picture"],
+  "zeroconf": {
+    "type": "_openkarotz._tcp.local.",
+    "message": ""
+  },
+  "homeassistant": "2026.1.0",
+  "homeassistant_recommended": "2026.1.0"
+}
