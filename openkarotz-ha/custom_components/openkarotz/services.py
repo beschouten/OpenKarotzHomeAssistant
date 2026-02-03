@@ -42,14 +42,36 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         except Exception as e:
             _LOGGER.error(f"Error playing audio: {e}")
 
-    async def handle_stop_audio(service: ServiceCall) -> None:
-        """Handle stop audio service."""
-        try:
-            coordinator = hass.data[DOMAIN][service.data.get("config_entry_id")]
-            api = coordinator["api"]
-            await api.stop_audio(source=service.data.get("source"))
-        except Exception as e:
-            _LOGGER.error(f"Error stopping audio: {e}")
+async def handle_stop_audio(service: ServiceCall) -> None:
+         """Handle stop audio service."""
+         try:
+             coordinator = hass.data[DOMAIN][service.data.get("config_entry_id")]
+             api = coordinator["api"]
+             await api.stop_audio(source=service.data.get("source"))
+         except Exception as e:
+             _LOGGER.error(f"Error stopping audio: {e}")
+
+     async def handle_set_volume(service: ServiceCall) -> None:
+         """Handle set volume service."""
+         try:
+             coordinator = hass.data[DOMAIN][service.data.get("config_entry_id")]
+             api = coordinator["api"]
+             await api.set_volume(service.data.get("volume", 50))
+         except Exception as e:
+             _LOGGER.error(f"Error setting volume: {e}")
+
+     async def handle_play_tts(service: ServiceCall) -> None:
+         """Handle play TTS service."""
+         try:
+             coordinator = hass.data[DOMAIN][service.data.get("config_entry_id")]
+             api = coordinator["api"]
+             await api.play_tts(
+                 text=service.data.get("text"),
+                 voice=service.data.get("voice"),
+                 category=service.data.get("category"),
+             )
+         except Exception as e:
+             _LOGGER.error(f"Error playing TTS: {e}")
 
     async def handle_set_volume(service: ServiceCall) -> None:
         """Handle set volume service."""
