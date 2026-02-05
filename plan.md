@@ -244,6 +244,33 @@ Document Structure:
 - flake8>=6.1.0
 - mypy>=1.5.0
 
+## API Documentation Source
+
+### OpenKarotz API Reference
+
+The API endpoints are based on the OpenKarotz Websources Installer project by rofra:
+- **Repository**: https://github.com/rofra/karotz-openkarotz-websources-installer
+- **API Pattern**: All endpoints follow the `/cgi-bin/` pattern
+
+### Key API Methods
+
+The OpenKarotz API provides the following key methods:
+
+| Endpoint | Function | Parameters |
+|----------|----------|------------|
+| `/cgi-bin/status` | Device status | - |
+| `/cgi-bin/ears` | Ear movement | left, right positions (0-16) |
+| `/cgi-bin/ears_mode` | Set ear mode | disabled=0/1 |
+| `/cgi-bin/ears_reset` | Reset ears | - |
+| `/cgi-bin/leds` | LED control | RGB, brightness |
+| `/cgi-bin/tts` | Text-to-speech | text, voice, category |
+| `/cgi-bin/sound` | Play sound | sound identifier, volume |
+| `/cgi-bin/sound_list` | List sounds | - |
+| `/cgi-bin/pictures` | Display pictures | picture, duration |
+| `/cgi-bin/rfid` | RFID detection | - |
+
+For detailed API documentation, visit the [OpenKarotz API Documentation](https://github.com/rofra/karotz-openkarotz-websources-installer).
+
 ## API Mapping Summary
 
 ### OpenKarotz API → Home Assistant Entities
