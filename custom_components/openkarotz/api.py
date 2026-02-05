@@ -64,7 +64,7 @@ class OpenKarotzAPI:
             )
 
             try:
-                await self._async_request("GET", "/api")
+                await self._async_request("GET", "/api", skip_connection_check=True)
             except Exception as e:
                 _LOGGER.error(f"Failed to connect to OpenKarotz: {e}")
                 await self.async_disconnect()
@@ -92,8 +92,9 @@ class OpenKarotzAPI:
         method: str,
         endpoint: str,
         data: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+params: Optional[Dict[str, Any]] = None,
+         skip_connection_check: bool = False,
+     ) -> Dict[str, Any]:
         """Make HTTP request to OpenKarotz API.
 
         Args:
@@ -109,7 +110,7 @@ class OpenKarotzAPI:
             OpenKarotzAPIError: On API errors
             OpenKarotzConnectionError: On connection errors
         """
-        if not self._is_connected or not self.session:
+        if not skip_connection_check and (not self._is_connected or not self.session):
             raise OpenKarotzConnectionError("Not connected to OpenKarotz")
 
         url = urljoin(self.base_url, endpoint)
@@ -143,7 +144,7 @@ class OpenKarotzAPI:
         Returns:
             Dictionary with device information
         """
-        return await self._async_request("GET", "/api")
+        return await self._async_request("GET", "/api", skip_connection_check=True)
 
     async def get_state(self) -> Dict[str, Any]:
         """Get device state.
