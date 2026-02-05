@@ -4,7 +4,6 @@ import logging
 import voluptuous as vol
 
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.helpers.entity_platform import async_get_entity_platform
 
 from .const import DOMAIN, SERVICE_NAMES, SERVICE_DATA_SCHEMAS
 
