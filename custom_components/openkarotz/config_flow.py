@@ -8,7 +8,6 @@ import voluptuous as vol
 
 from homeassistant import config_entries, data_entry_flow
 from homeassistant.const import CONF_HOST, CONF_PORT
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import OpenKarotzAPI
 
 from .const import DOMAIN
@@ -23,7 +22,7 @@ DATA_SCHEMA = vol.Schema(
 )
 
 
-class OpenKarotzConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class OpenKarotzConfigFlow(config_entries.ConfigFlow):
     """Handle a config flow for OpenKarotz."""
 
     async def async_step_user(self, user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResultType:
@@ -60,12 +59,6 @@ class OpenKarotzConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=DATA_SCHEMA,
             errors=errors,
-            description_placeholders={
-                "host": "The IP address of your OpenKarotz device",
-                "port": "The port number (default: 80)",
-                "example_host": "192.168.1.201",
-                "example_port": "80"
-            },
         )
 
     def _check_duplicate(self, host: str, port: int) -> bool:
