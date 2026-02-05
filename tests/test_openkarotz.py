@@ -2,7 +2,13 @@
 
 import pytest
 import asyncio
+import sys
 from unittest.mock import AsyncMock, MagicMock, patch
+
+# Mock services module before importing
+mock_services = MagicMock()
+sys.modules['custom_components.openkarotz.services'] = mock_services
+
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
@@ -173,6 +179,47 @@ def test_constants_defined():
     assert hasattr(const, 'DEFAULT_TIMEOUT')
     assert hasattr(const, 'SERVICE_NAMES')
     assert hasattr(const, 'SERVICE_DATA_SCHEMAS')
+
+
+@pytest.mark.asyncio
+async def test_api_move_ears(mock_api):
+    """Test moving ears to specific positions."""
+    mock_api.move_ears.return_value = {"status": "ok", "left": 90, "right": 90}
+    
+    result = await mock_api.move_ears(90, 90)
+    
+    assert result["status"] == "ok"
+    mock_api.move_ears.assert_called_once_with(90, 90)
+
+
+@pytest.mark.asyncio
+async def test_api_ears_mode(mock_api):
+    """Test setting ear mode."""
+    mock_api.ears_mode.return_value = {"status": "ok", "mode": "disabled"}
+    
+    result = await mock_api.ears_mode("disabled")
+    
+    assert result["status"] == "ok"
+    assert result["mode"] == "disabled"
+    mock_api.ears_mode.assert_called_once_with("disabled")
+    
+    mock_api.ears_mode.return_value = {"status": "ok", "mode": "random"}
+    result = await mock_api.ears_mode("random")
+    
+    assert result["mode"] == "random"
+    mock_api.ears_mode.assert_called_with("random")
+
+
+@pytest.mark.asyncio
+async def test_api_ears_reset(mock_api):
+    """Test resetting ears to center position."""
+    mock_api.ears_reset.return_value = {"status": "ok", "reset": True}
+    
+    result = await mock_api.ears_reset()
+    
+    assert result["status"] == "ok"
+    assert result["reset"] is True
+    mock_api.ears_reset.assert_called_once()
 
 
 if __name__ == "__main__":
