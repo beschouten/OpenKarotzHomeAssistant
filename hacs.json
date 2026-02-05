@@ -1,5 +1,3 @@
-"""HACS repository metadata."""
-
 {
   "name": "OpenKarotz Home Assistant Integration",
   "filename": "openkarotz",
