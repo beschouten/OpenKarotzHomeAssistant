@@ -11,6 +11,18 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import OpenKarotzCoordinator
 from .const import DOMAIN, LIGHT_ATTRIBUTES
 
+
+# Predefined colors for Karotz LED
+PREDEFINED_COLORS = {
+    "red": (255, 0, 0),
+    "green": (0, 255, 0),
+    "blue": (0, 0, 255),
+    "yellow": (255, 255, 0),
+    "cyan": (0, 255, 255),
+    "magenta": (255, 0, 255),
+    "white": (255, 255, 255),
+    "black": (0, 0, 0),
+}
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -131,8 +143,16 @@ class OpenKarotzLight(CoordinatorEntity[OpenKarotzCoordinator], LightEntity):
         led_id = self.led_data.get("id", 1)
         await self.coordinator.api.set_led(led_id=led_id, brightness=0)
 
+    async def async_select_color(self, color_name: str) -> None:
+        """Select a predefined color for the LED."""
+        if color_name in PREDEFINED_COLORS:
+            color = PREDEFINED_COLORS[color_name]
+            await self.async_turn_on(color=color)
+        else:
+            _LOGGER.warning(f"Unknown color: {color_name}")
+
     @property
-    def device_state_attributes(self) -> dict[str, str]:
+    def device_state_attributes(self) -> dict:
         """Return device state attributes."""
         led_state = self.coordinator.leds_state or {}
         return {
