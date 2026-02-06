@@ -10,6 +10,7 @@ from .api import OpenKarotzAPI
 from .const import DOMAIN
 from .coordinator import OpenKarotzCoordinator
 from .services import async_setup_services
+from . import config_flow
 
 _LOGGER = logging.getLogger(__name__)
 
