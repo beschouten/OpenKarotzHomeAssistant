@@ -83,13 +83,16 @@ class OpenKarotzLight(CoordinatorEntity[OpenKarotzCoordinator], LightEntity):
     @property
     def supported_color_modes(self) -> set[str]:
         """Return supported color modes."""
-        led_state = self.coordinator.leds_state or {}
+        led_state = self.coordinator.leds_state or {} if self.coordinator else {}
         modes = set()
         if led_state.get("color") or led_state.get("rgb_value"):
             modes.add("rgb")
         if led_state.get("color_temperature") is not None:
             modes.add("color_temperature")
         if led_state.get("preset"):
+            modes.add("rgb")
+        if not modes:
+            # Default to rgb if no state available yet
             modes.add("rgb")
         return modes
 

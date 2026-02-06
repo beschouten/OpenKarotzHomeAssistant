@@ -59,7 +59,7 @@ class OpenKarotzInfoSensor(OpenKarotzSensor):
     @property
     def native_value(self):
         """Return device name."""
-        return self.coordinator.data.get("info", {}).get("name", "Unknown")
+        return self.coordinator.data.get("info", {}).get("name", "Unknown") if self.coordinator.data else "Unknown"
 
 
 class OpenKarotzStateSensor(OpenKarotzSensor):
@@ -75,7 +75,7 @@ class OpenKarotzStateSensor(OpenKarotzSensor):
     @property
     def native_value(self):
         """Return device state."""
-        return self.coordinator.data.get("state", {}).get("state", "Unknown")
+        return self.coordinator.data.get("state", {}).get("state", "Unknown") if self.coordinator.data else "Unknown"
 
 
 class OpenKarotzMemoryUsageSensor(OpenKarotzSensor):
@@ -91,7 +91,7 @@ class OpenKarotzMemoryUsageSensor(OpenKarotzSensor):
     @property
     def native_value(self):
         """Return memory usage."""
-        return self.coordinator.data.get("state", {}).get("memory", {}).get("usage", 0)
+        return self.coordinator.data.get("state", {}).get("memory", {}).get("usage", 0) if self.coordinator.data else 0
 
     @property
     def unit_of_measurement(self):
@@ -123,7 +123,7 @@ class OpenKarotzUptimeSensor(OpenKarotzSensor):
     @property
     def native_value(self):
         """Return device uptime in seconds."""
-        return self.coordinator.data.get("state", {}).get("uptime", 0)
+        return self.coordinator.data.get("state", {}).get("uptime", 0) if self.coordinator.data else 0
 
     @property
     def unit_of_measurement(self):

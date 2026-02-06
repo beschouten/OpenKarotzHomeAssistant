@@ -59,7 +59,7 @@ class OpenKarotzMediaPlayer(CoordinatorEntity[OpenKarotzCoordinator], MediaPlaye
     @property
     def available(self) -> bool:
         """Check if entity is available."""
-        return self.coordinator.data.get("connection_status") == "connected"
+        return self.coordinator.data.get("connection_status") == "connected" if self.coordinator.data else False
 
     @property
     def supported_features(self) -> int:

@@ -64,7 +64,7 @@ class OpenKarotzMainSwitch(OpenKarotzSwitch):
     @property
     def available(self) -> bool:
         """Check if entity is available."""
-        return self.coordinator.data.get(ATTR_CONNECTION_STATUS) == "connected"
+        return self.coordinator.data.get("connection_status") == "connected" if self.coordinator.data else False
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn on the device."""
