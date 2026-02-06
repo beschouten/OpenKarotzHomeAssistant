@@ -147,6 +147,34 @@ params: Optional[Dict[str, Any]] = None,
         """
         return await self._async_request("GET", API_ENDPOINTS["GET_INFO"], skip_connection_check=True)
 
+
+    async def get_version(self) -> Dict[str, Any]:
+        """Get device firmware versions.
+
+        Returns:
+            Dictionary with firmware version information
+        """
+        return await self._async_request("GET", API_ENDPOINTS["GET_VERSION"], skip_connection_check=True)
+
+    async def wakeup(self, silent: bool = False) -> Dict[str, Any]:
+        """Wake up the device.
+
+        Args:
+            silent: If True, no sound is played
+
+        Returns:
+            API response
+        """
+        params = {"silent": 1 if silent else 0}
+        return await self._async_request("GET", API_ENDPOINTS["WAKEUP"], params=params, skip_connection_check=True)
+
+    async def sleep(self) -> Dict[str, Any]:
+        """Put device to sleep.
+
+        Returns:
+            API response
+        """
+        return await self._async_request("GET", API_ENDPOINTS["SLEEP"], skip_connection_check=True)
     async def get_state(self) -> Dict[str, Any]:
         """Get device state.
 
