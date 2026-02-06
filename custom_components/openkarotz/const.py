@@ -6,7 +6,7 @@ DOMAIN = "openkarotz"
 # API endpoints
 API_BASE_URL = "http://192.168.1.201"
 API_ENDPOINTS = {
-    "GET_INFO": "/api",
+    "GET_INFO": "/api.html",
     "GET_STATE": "/state",
     "GET_LEDS": "/leds",
     "GET_EARS": "/ears",

@@ -64,7 +64,7 @@ class OpenKarotzAPI:
             )
 
             try:
-                await self._async_request("GET", "/api", skip_connection_check=True)
+                await self._async_request("GET", "/api.html", skip_connection_check=True)
             except Exception as e:
                 _LOGGER.error(f"Failed to connect to OpenKarotz: {e}")
                 await self.async_disconnect()
@@ -144,7 +144,7 @@ params: Optional[Dict[str, Any]] = None,
         Returns:
             Dictionary with device information
         """
-        return await self._async_request("GET", "/api", skip_connection_check=True)
+        return await self._async_request("GET", "/api.html", skip_connection_check=True)
 
     async def get_state(self) -> Dict[str, Any]:
         """Get device state.
