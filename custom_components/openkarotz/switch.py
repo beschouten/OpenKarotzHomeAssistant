@@ -49,7 +49,11 @@ class OpenKarotzMainSwitch(OpenKarotzSwitch):
     """Main device enable/disable switch."""
 
     _attr_name = "Enable Device"
-    _attr_unique_id = f"{coordinator.data.get(ATTR_DEVICE_ID, 'unknown')}_enable_switch"
+
+    @property
+    def unique_id(self):
+        """Return unique ID."""
+        return f"{self.coordinator.data.get(ATTR_DEVICE_ID, 'unknown')}_enable_switch"
 
     @property
     def is_on(self) -> bool:
