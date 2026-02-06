@@ -54,7 +54,7 @@ class OpenKarotzInfoSensor(OpenKarotzSensor):
     @property
     def unique_id(self):
         """Return unique ID."""
-        return f"{self.coordinator.data.get(ATTR_DEVICE_ID, 'unknown')}_info"
+        return f"{self.coordinator.data.get('info', {}).get('id', 'unknown') if self.coordinator.data else 'unknown'}_info"
 
     @property
     def native_value(self):
@@ -70,7 +70,7 @@ class OpenKarotzStateSensor(OpenKarotzSensor):
     @property
     def unique_id(self):
         """Return unique ID."""
-        return f"{self.coordinator.data.get(ATTR_DEVICE_ID, 'unknown')}_state"
+        return f"{self.coordinator.data.get('info', {}).get('id', 'unknown') if self.coordinator.data else 'unknown'}_state"
 
     @property
     def native_value(self):
@@ -86,7 +86,7 @@ class OpenKarotzMemoryUsageSensor(OpenKarotzSensor):
     @property
     def unique_id(self):
         """Return unique ID."""
-        return f"{self.coordinator.data.get(ATTR_DEVICE_ID, 'unknown')}_memory_usage"
+        return f"{self.coordinator.data.get('info', {}).get('id', 'unknown') if self.coordinator.data else 'unknown'}_memory_usage"
 
     @property
     def native_value(self):
@@ -118,7 +118,7 @@ class OpenKarotzUptimeSensor(OpenKarotzSensor):
     @property
     def unique_id(self):
         """Return unique ID."""
-        return f"{self.coordinator.data.get(ATTR_DEVICE_ID, 'unknown')}_uptime"
+        return f"{self.coordinator.data.get('info', {}).get('id', 'unknown') if self.coordinator.data else 'unknown'}_uptime"
 
     @property
     def native_value(self):

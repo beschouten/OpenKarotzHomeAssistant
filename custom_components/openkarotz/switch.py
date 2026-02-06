@@ -53,7 +53,7 @@ class OpenKarotzMainSwitch(OpenKarotzSwitch):
     @property
     def unique_id(self):
         """Return unique ID."""
-        return f"{self.coordinator.data.get(ATTR_DEVICE_ID, 'unknown')}_enable_switch"
+        return f"{self.coordinator.data.get('info', {}).get('id', 'unknown') if self.coordinator.data else 'unknown'}_enable_switch"
 
     @property
     def is_on(self) -> bool:

@@ -60,7 +60,7 @@ class OpenKarotzLight(CoordinatorEntity[OpenKarotzCoordinator], LightEntity):
         super().__init__(coordinator)
         self.led_data = led_data
         led_id = led_data.get("id", 1)
-        self._attr_unique_id = f"{coordinator.data.get('info', {}).get('id', 'unknown')}_led_{led_id}"
+        self._attr_unique_id = f"{coordinator.data.get('info', {}).get('id', 'unknown') if coordinator.data else 'unknown'}_led_{led_id}"
         self._attr_name = led_data.get("name", f"LED {led_id}")
         self._attr_device_info = coordinator.device_info
 

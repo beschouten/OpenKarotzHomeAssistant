@@ -52,7 +52,7 @@ class OpenKarotzMediaPlayer(CoordinatorEntity[OpenKarotzCoordinator], MediaPlaye
         super().__init__(coordinator)
         self.ear_data = ear_data
         ear_id = ear_data.get("id", 1)
-        self._attr_unique_id = f"{coordinator.data.get('info', {}).get('id', 'unknown')}_audio_{ear_id}"
+        self._attr_unique_id = f"{coordinator.data.get('info', {}).get('id', 'unknown') if coordinator.data else 'unknown'}_audio_{ear_id}"
         self._attr_name = ear_data.get("name", f"Audio Player {ear_id}")
         self._attr_device_info = coordinator.device_info
 
