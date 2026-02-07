@@ -116,7 +116,7 @@ class OpenKarotzCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 "info": info,
                 "state": state,
                 "leds": leds,
-                "ears": ears,
+                # Removed ears - API requires parameters
                 "tts": tts,
                 "moods": apps,
             }
