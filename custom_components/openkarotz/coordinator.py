@@ -10,7 +10,6 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .api import OpenKarotzAPI
 from .const import (
-    ATTR_API_VERSION,
     ATTR_CONNECTION_STATUS,
     ATTR_ERROR_MESSAGE,
     ATTR_DEVICE_ID,
