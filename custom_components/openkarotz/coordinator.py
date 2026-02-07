@@ -38,44 +38,31 @@ class OpenKarotzCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self._device_state: Optional[Dict[str, Any]] = None
         self._led_state: Optional[Dict[str, Any]] = None
         self._tts_state: Optional[Dict[str, Any]] = None
-        self._pictures: Optional[Dict[str, Any]] = None
-        self._sounds: Optional[Dict[str, Any]] = None
         self._apps: Optional[Dict[str, Any]] = None
 
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch data from OpenKarotz API."""
         try:
-            # Fetch only working data in parallel
             info_task = self.api.get_info()
-            state_task = self.api.get_state()
             leds_task = self.api.get_leds()
             tts_task = self.api.get_tts()
             apps_task = self.api.get_apps()
 
-            info, state, leds, tts, apps = await asyncio.gather(
+            info, leds, tts, apps = await asyncio.gather(
                 info_task,
-                state_task,
                 leds_task,
-                ears_task,
                 tts_task,
                 apps_task,
                 return_exceptions=True,
             )
 
-            # Handle any errors
             errors = {}
             if isinstance(info, Exception):
                 errors["info"] = str(info)
                 info = {}
-            if isinstance(state, Exception):
-                errors["state"] = str(state)
-                state = {}
             if isinstance(leds, Exception):
                 errors["leds"] = str(leds)
                 leds = {}
-            if isinstance(ears, Exception):
-                errors["ears"] = str(ears)
-                ears = {}
             if isinstance(tts, Exception):
                 errors["tts"] = str(tts)
                 tts = {}
@@ -83,27 +70,20 @@ class OpenKarotzCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 errors["apps"] = str(apps)
                 apps = {}
 
-            # Update state variables
             self._device_info = info
-            # Use info for state since get_state returns same data
             self._device_state = info
             self._led_state = leds
             self._tts_state = tts
             self._apps = apps
 
-            # Check connection status
-            connection_status = "connected" if not errors else "disconnected"
-
-            # Build response data
             data = {
                 "id": info.get("id", info.get("wlan_mac", "unknown")),
                 "version": info.get("version", "unknown"),
                 ATTR_LAST_UPDATE: datetime.now().isoformat(),
                 ATTR_ERROR_MESSAGE: str(errors) if errors else None,
                 "info": info,
-                "state": state,
+                "state": info,
                 "leds": leds,
-                # Removed ears - API requires parameters
                 "tts": tts,
                 "moods": apps,
             }
@@ -141,29 +121,9 @@ class OpenKarotzCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         return self._led_state
 
     @property
-    def ears_state(self) -> Optional[Dict[str, Any]]:
-        """Return audio player state."""
-        return self._ears_state
-
-    @property
-    def rfid_state(self) -> Optional[Dict[str, Any]]:
-        """Return RFID state."""
-        return self._rfid_state
-
-    @property
     def tts_state(self) -> Optional[Dict[str, Any]]:
         """Return TTS state."""
         return self._tts_state
-
-    @property
-    def pictures(self) -> Optional[Dict[str, Any]]:
-        """Return pictures information."""
-        return self._pictures
-
-    @property
-    def sounds(self) -> Optional[Dict[str, Any]]:
-        """Return sounds information."""
-        return self._sounds
 
     @property
     def apps(self) -> Optional[Dict[str, Any]]:

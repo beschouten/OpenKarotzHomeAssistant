@@ -2,19 +2,14 @@
 
 # OpenKarotz Home Assistant Integration
 
-A comprehensive Home Assistant integration for OpenKarotz devices, enabling seamless control and monitoring through the Home Assistant Community Store (HACS).
+A Home Assistant integration for OpenKarotz devices, enabling control and monitoring of working features through the Home Assistant Community Store (HACS).
 
 ## Features
 
- - **Device Information**: Monitor device status, memory usage, and uptime
- - **LED Control**: Full RGB color control, brightness adjustment, and color temperature
- - **Audio Player**: Playback control, volume management, and media management
- - **RFID Detection**: Real-time RFID card detection and event handling
- - **Text-to-Speech**: Voice synthesis with customizable categories
- - **Sound Effects**: Play various sound categories with volume control
- - **Picture Display**: Display pictures with customizable duration
- - **Ear Movement Control**: Control ear movement with position adjustment, mode selection, and reset functionality
- - **Service Integration**: Full API access through Home Assistant services
+- **Device Information**: Monitor device status, memory usage, and uptime
+- **LED Control**: Full RGB color control, brightness adjustment, and color temperature
+- **Text-to-Speech**: Voice synthesis with customizable categories
+- **Basic Device Control**: Wake up, sleep, and cache management
 
 ## Installation
 
@@ -63,27 +58,13 @@ openkarotz:
 
 - **LED Light**: Full RGB color control with brightness and color temperature
 
-### Media Player
-
-- **Audio Player**: Complete audio playback control with volume management
-
-### Binary Sensors
-
-- **RFID Detection**: Real-time RFID card detection status
-
 ### Switches
 
 - **Enable Device**: Enable or disable the OpenKarotz device
 
-### Ear Movement Entities
-
-- **Ear Position**: Current ear position
-- **Ear Mode**: Current ear movement mode
-- **Ear Reset**: Ear reset control
-
 ## Services
 
-### Set LED
+### set_led
 Set LED color, brightness, or preset.
 
 **Service Data Attributes:**
@@ -93,27 +74,7 @@ Set LED color, brightness, or preset.
 - `preset`: Preset color scheme name
 - `rgb_value`: RGB color value (e.g., "FF0000")
 
-### Play Audio
-Play audio from specified source.
-
-**Service Data Attributes:**
-- `source`: Audio source identifier
-- `category`: Audio category (e.g., "alarm", "notification")
-- `volume`: Audio volume (0-100)
-
-### Stop Audio
-Stop audio playback.
-
-**Service Data Attributes:**
-- `source`: Audio source to stop (optional)
-
-### Set Volume
-Set audio volume level.
-
-**Service Data Attributes:**
-- `volume`: Volume level (0-100)
-
-### Play TTS
+### play_tts
 Play text-to-speech.
 
 **Service Data Attributes:**
@@ -121,36 +82,20 @@ Play text-to-speech.
 - `voice`: Voice identifier
 - `category`: TTS category (e.g., "notification")
 
-### Play Sound
-Play a sound effect.
+### wakeup
+Wake up the device.
 
 **Service Data Attributes:**
-- `sound`: Sound identifier
-- `volume`: Volume level (0-100)
+- No attributes required
 
-### Display Picture
-Display a picture on the device.
-
-**Service Data Attributes:**
-- `picture`: Picture identifier
-- `duration`: Display duration in seconds
-
-### Move Ears
-Control ear movement to specific position.
+### sleep
+Put the device to sleep.
 
 **Service Data Attributes:**
-- `position`: Ear position (0-100)
-- `duration`: Movement duration in seconds
-- `sync`: Synchronize both ears (boolean)
+- No attributes required
 
-### Ear Mode
-Set ear movement mode.
-
-**Service Data Attributes:**
-- `mode`: Movement mode ("idle", "scan", "reactive")
-
-### Ear Reset
-Reset ears to default position.
+### clear_cache
+Clear device cache.
 
 **Service Data Attributes:**
 - No attributes required
@@ -174,62 +119,19 @@ automation:
           brightness: 100
 ```
 
-#### Play TTS when RFID detected
+#### Play TTS on device startup
 ```yaml
 automation:
-  - alias: "Play TTS on RFID"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.rfid_detection
-        to: "on"
-    action:
-      - service: openkarotz.play_tts
-        data:
-          text: "RFID card detected"
-          category: "notification"
-```
-
-#### Move ears when device starts
-```yaml
-automation:
-  - alias: "Move ears on startup"
+  - alias: "Play TTS on startup"
     trigger:
       - platform: state
         entity_id: sensor.device_state
         to: "running"
     action:
-      - service: openkarotz.move_ears
+      - service: openkarotz.play_tts
         data:
-          position: 50
-          duration: 2
-          sync: true
-```
-
-#### Set ear mode for scanning
-```yaml
-automation:
-  - alias: "Set scanning mode"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.rfid_detection
-        to: "on"
-    action:
-      - service: openkarotz.ears_mode
-        data:
-          mode: "reactive"
-```
-
-#### Reset ears after RFID scan
-```yaml
-automation:
-  - alias: "Reset ears after scan"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.rfid_detection
-        to: "off"
-    action:
-      - service: openkarotz.ears_reset
-        data: {}
+          text: "Device started"
+          category: "notification"
 ```
 
 ## Troubleshooting
@@ -267,13 +169,10 @@ openkarotz-ha/
 │       ├── config_flow.py
 │       ├── coordinator.py
 │       ├── api.py
-│       │   └── Includes: move_ears(), ears_mode(), ears_reset(), get_pictures(), get_sounds(), get_apps()
+│       │   └── Includes: get_device_info(), set_led(), play_tts(), wakeup(), sleep(), clear_cache()
 │       ├── sensors.py
 │       ├── lights.py
-│       ├── media_player.py
-│       ├── binary_sensor.py
 │       ├── switch.py
-│       ├── ear_movement.py
 │       ├── services.py
 │       ├── const.py
 │       ├── manifest.json
@@ -281,8 +180,7 @@ openkarotz-ha/
 │           └── en.json
 ├── tests/
 │   ├── __init__.py
-│   ├── test_api.py
-│   └── test_ear_movement.py
+│   └── test_api.py
 ├── README.md
 └── requirements.txt
 ```
@@ -301,6 +199,14 @@ pytest tests/
 
 ## Changelog
 
+### Version 1.2.0
+- Removed non-working features (ears, RFID, pictures, sounds)
+- Updated to only include working features: device info, LED control, TTS, basic device control
+- Updated services to only show working services
+- Updated entities to only include working entities
+- Updated API documentation to only show working endpoints
+- Updated project structure to reflect actual implementation
+
 ### Version 1.1.0
 - Added ear movement control (move_ears, ears_mode, ears_reset)
 - Added play_sound and display_picture services
@@ -308,6 +214,12 @@ pytest tests/
 - Added comprehensive tests for ear movement API
 - Fixed HACS installation issues
 - All code validated with pytest
+
+### Version 1.0.0
+- Initial release with basic device control
+- LED control functionality
+- TTS functionality
+- Device monitoring sensors
 
 ## Contributing
 
@@ -332,19 +244,15 @@ The OpenKarotz API is based on the OpenKarotz Websources Installer project by ro
 - **Repository**: https://github.com/rofra/karotz-openkarotz-websources-installer
 - **API Pattern**: All endpoints follow the `/cgi-bin/` pattern
 
-### Key API Methods
+### Working API Endpoints
 
 | Endpoint | Function | Parameters |
 |----------|----------|------------|
 | `/cgi-bin/status` | Device status | - |
-| `/cgi-bin/ears` | Ear movement | left, right positions (0-16) |
-| `/cgi-bin/ears_mode` | Set ear mode | disabled=0/1 |
-| `/cgi-bin/ears_reset` | Reset ears | - |
 | `/cgi-bin/leds` | LED control | RGB, brightness |
 | `/cgi-bin/tts` | Text-to-speech | text, voice, category |
-| `/cgi-bin/sound` | Play sound | sound identifier, volume |
-| `/cgi-bin/sound_list` | List sounds | - |
-| `/cgi-bin/pictures` | Display pictures | picture, duration |
-| `/cgi-bin/rfid` | RFID detection | - |
+| `/cgi-bin/wakeup` | Wake up device | - |
+| `/cgi-bin/sleep` | Put device to sleep | - |
+| `/cgi-bin/cache` | Clear cache | - |
 
 For detailed API documentation, visit the [OpenKarotz API Documentation](https://github.com/rofra/karotz-openkarotz-websources-installer).

@@ -46,5 +46,8 @@ Thumbs.db
 *.log
 *.log
 
+# Home Assistant config directory
+config/
+
 # Node
 node_modules/
