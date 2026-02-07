@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import OpenKarotzAPI
 from .coordinator import OpenKarotzCoordinator
-from .const import DOMAIN, SWITCH_ATTRIBUTES
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
