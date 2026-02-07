@@ -37,8 +37,6 @@ class OpenKarotzCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self._device_info: Optional[Dict[str, Any]] = None
         self._device_state: Optional[Dict[str, Any]] = None
         self._led_state: Optional[Dict[str, Any]] = None
-        self._ears_state: Optional[Dict[str, Any]] = None
-        self._rfid_state: Optional[Dict[str, Any]] = None
         self._tts_state: Optional[Dict[str, Any]] = None
         self._pictures: Optional[Dict[str, Any]] = None
         self._sounds: Optional[Dict[str, Any]] = None
@@ -51,11 +49,10 @@ class OpenKarotzCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             info_task = self.api.get_info()
             state_task = self.api.get_state()
             leds_task = self.api.get_leds()
-            ears_task = self.api.get_ears()
             tts_task = self.api.get_tts()
             apps_task = self.api.get_apps()
 
-            info, state, leds, ears, tts, apps = await asyncio.gather(
+            info, state, leds, tts, apps = await asyncio.gather(
                 info_task,
                 state_task,
                 leds_task,
@@ -79,18 +76,9 @@ class OpenKarotzCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             if isinstance(ears, Exception):
                 errors["ears"] = str(ears)
                 ears = {}
-            if isinstance(rfid, Exception):
-                errors["rfid"] = str(rfid)
-                rfid = {}
             if isinstance(tts, Exception):
                 errors["tts"] = str(tts)
                 tts = {}
-            if isinstance(pictures, Exception):
-                errors["pictures"] = str(pictures)
-                pictures = {}
-            if isinstance(sounds, Exception):
-                errors["sounds"] = str(sounds)
-                sounds = {}
             if isinstance(apps, Exception):
                 errors["apps"] = str(apps)
                 apps = {}
@@ -100,7 +88,6 @@ class OpenKarotzCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             # Use info for state since get_state returns same data
             self._device_state = info
             self._led_state = leds
-            self._ears_state = ears
             self._tts_state = tts
             self._apps = apps
 
